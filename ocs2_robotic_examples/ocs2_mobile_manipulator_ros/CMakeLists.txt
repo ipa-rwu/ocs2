@@ -18,7 +18,7 @@ find_package(ocs2_core REQUIRED)
 find_package(ocs2_ddp REQUIRED)
 find_package(ocs2_mpc REQUIRED)
 find_package(ocs2_robotic_tools REQUIRED)
-find_package(ocs2_robotic_assets REQUIRED)
+find_package(ocs2_robotic_assets QUIET)
 find_package(ocs2_pinocchio_interface REQUIRED)
 find_package(ocs2_self_collision REQUIRED)
 find_package(ocs2_self_collision_visualization REQUIRED)
@@ -28,6 +28,13 @@ find_package(pinocchio REQUIRED)
 find_package(hpp-fcl REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem log_setup log)
+
+set(OCS2_MM_ROS_OPTIONAL_DEPS "")
+if(ocs2_robotic_assets_FOUND)
+  list(APPEND OCS2_MM_ROS_OPTIONAL_DEPS ocs2_robotic_assets)
+else()
+  message(WARNING "ocs2_robotic_assets not found: build continues, but launch defaults depending on that package may fail at runtime.")
+endif()
 
 set(dependencies
   rclcpp
@@ -43,11 +50,11 @@ set(dependencies
   ocs2_ddp
   ocs2_mpc
   ocs2_robotic_tools
-  ocs2_robotic_assets
   ocs2_pinocchio_interface
   ocs2_self_collision
   ocs2_self_collision_visualization
   ocs2_mobile_manipulator
+  ${OCS2_MM_ROS_OPTIONAL_DEPS}
 )
 
 add_executable(mobile_manipulator_mpc_node
