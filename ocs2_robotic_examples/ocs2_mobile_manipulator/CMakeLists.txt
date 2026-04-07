@@ -9,13 +9,20 @@ find_package(ocs2_core REQUIRED)
 find_package(ocs2_ddp REQUIRED)
 find_package(ocs2_mpc REQUIRED)
 find_package(ocs2_robotic_tools REQUIRED)
-find_package(ocs2_robotic_assets REQUIRED)
+find_package(ocs2_robotic_assets QUIET)
 find_package(ocs2_pinocchio_interface REQUIRED)
 find_package(ocs2_self_collision REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(hpp-fcl REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem log_setup log)
+
+set(OCS2_MOBILE_MANIPULATOR_OPTIONAL_DEPS "")
+if(ocs2_robotic_assets_FOUND)
+  list(APPEND OCS2_MOBILE_MANIPULATOR_OPTIONAL_DEPS ocs2_robotic_assets)
+else()
+  message(WARNING "ocs2_robotic_assets not found: building without asset-dependent tests.")
+endif()
 
 # Resolve for the package path at compile time.
 configure_file(
@@ -56,9 +63,9 @@ ament_target_dependencies(${PROJECT_NAME}
     ocs2_ddp
     ocs2_mpc
     ocs2_robotic_tools
-    ocs2_robotic_assets
     ocs2_pinocchio_interface
     ocs2_self_collision
+    ${OCS2_MOBILE_MANIPULATOR_OPTIONAL_DEPS}
 )
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_PINOCCHIO_FLAGS})
 
@@ -99,12 +106,12 @@ ament_export_dependencies(
   ocs2_ddp
   ocs2_mpc
   ocs2_robotic_tools
-  ocs2_robotic_assets
   ocs2_pinocchio_interface
   ocs2_self_collision
   pinocchio
   Eigen3
   Boost
+  ${OCS2_MOBILE_MANIPULATOR_OPTIONAL_DEPS}
 )
 
 ############
@@ -112,25 +119,29 @@ ament_export_dependencies(
 ############
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
+  if(ocs2_robotic_assets_FOUND)
+    find_package(ament_cmake_gtest REQUIRED)
 
-  macro(add_ocs2_test APP_NAME APP_SRC)
-    ament_add_gtest(${APP_NAME}
-      ${APP_SRC}
-    )
-    target_include_directories(${APP_NAME} PRIVATE
-      ${PROJECT_BINARY_DIR}/include
-    )
-    target_link_libraries(${APP_NAME}
-      gtest_main
-      ${PROJECT_NAME}
-    )
-  endmacro()
+    macro(add_ocs2_test APP_NAME APP_SRC)
+      ament_add_gtest(${APP_NAME}
+        ${APP_SRC}
+      )
+      target_include_directories(${APP_NAME} PRIVATE
+        ${PROJECT_BINARY_DIR}/include
+      )
+      target_link_libraries(${APP_NAME}
+        gtest_main
+        ${PROJECT_NAME}
+      )
+    endmacro()
 
-  add_ocs2_test(SelfCollisionTest test/testSelfCollision.cpp)
-  add_ocs2_test(EndEffectorConstraintTest test/testEndEffectorConstraint.cpp)
-  add_ocs2_test(DummyMobileManipulatorTest test/testDummyMobileManipulator.cpp)
-  set_tests_properties(DummyMobileManipulatorTest PROPERTIES TIMEOUT 600)
+    add_ocs2_test(SelfCollisionTest test/testSelfCollision.cpp)
+    add_ocs2_test(EndEffectorConstraintTest test/testEndEffectorConstraint.cpp)
+    add_ocs2_test(DummyMobileManipulatorTest test/testDummyMobileManipulator.cpp)
+    set_tests_properties(DummyMobileManipulatorTest PROPERTIES TIMEOUT 600)
+  else()
+    message(WARNING "Skipping ocs2_mobile_manipulator tests because ocs2_robotic_assets is unavailable.")
+  endif()
 endif()
 
 ament_package()
