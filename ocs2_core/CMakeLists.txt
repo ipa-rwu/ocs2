@@ -120,10 +120,7 @@ ament_target_dependencies(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    Boost::system
-    Boost::filesystem
-    Boost::log_setup
-    Boost::log
+    ${Boost_LIBRARIES}
     OpenMP::OpenMP_CXX
     Threads::Threads
 )
