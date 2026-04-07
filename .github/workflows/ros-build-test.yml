@@ -92,7 +92,11 @@ jobs:
 
     - name: Pin setuptools < 80
       run: |
-        pip3 install --no-cache-dir --break-system-packages 'setuptools<80'
+        if [ "${{ matrix.ros_distro }}" = "humble" ]; then
+          pip3 install --no-cache-dir 'setuptools<80'
+        else
+          pip3 install --no-cache-dir --break-system-packages 'setuptools<80'
+        fi
 
     - name: Checkout
       uses: actions/checkout@v4
