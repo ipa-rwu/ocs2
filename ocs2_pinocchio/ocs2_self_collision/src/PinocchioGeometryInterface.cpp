@@ -39,10 +39,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/parsers/urdf.hpp>
 
+#include <memory>
+#include <sstream>
 #include <urdf_parser/urdf_parser.h>
+#include <tinyxml.h>
 #include <tinyxml2.h>
 
 namespace ocs2 {
+namespace {
+
+std::string urdfXmlToString(const tinyxml2::XMLDocument& doc) {
+  tinyxml2::XMLPrinter printer;
+  doc.Print(&printer);
+  return std::string(printer.CStr());
+}
+
+std::string urdfXmlToString(const TiXmlDocument& doc) {
+  TiXmlPrinter printer;
+  printer.SetStreamPrinting();
+  doc.Accept(&printer);
+  return std::string(printer.CStr());
+}
+
+}  // namespace
 
 /******************************************************************************************************/
 /******************************************************************************************************/
@@ -95,12 +114,17 @@ void PinocchioGeometryInterface::buildGeomFromPinocchioInterface(const Pinocchio
   }
 
   // TODO: Replace with pinocchio function that uses the ModelInterface directly.
-  // Pinocchio still expects a URDF stream here, so export the URDFDOM model to a tinyxml2 document first.
-  const std::unique_ptr<tinyxml2::XMLDocument> urdfAsXml(urdf::exportURDF(*pinocchioInterface.getUrdfModelPtr()));
-  tinyxml2::XMLPrinter printer;
-  urdfAsXml->Print(&printer);
+  // Pinocchio still expects a URDF stream here, so export the URDFDOM model and serialize it.
+  auto* urdfXmlRaw = urdf::exportURDF(*pinocchioInterface.getUrdfModelPtr());
+  if (!urdfXmlRaw) {
+    throw std::runtime_error("urdf::exportURDF(...) returned nullptr.");
+  }
+
+  using UrdfXmlDoc = std::remove_pointer<decltype(urdfXmlRaw)>::type;
+  const std::unique_ptr<UrdfXmlDoc> urdfAsXml(urdfXmlRaw);
+
   std::stringstream urdfAsStringStream;
-  urdfAsStringStream << printer.CStr();
+  urdfAsStringStream << urdfXmlToString(*urdfAsXml);
 
   pinocchio::urdf::buildGeom(pinocchioInterface.getModel(), urdfAsStringStream, pinocchio::COLLISION, geomModel);
 }
