@@ -11,7 +11,8 @@ find_package(ocs2_pinocchio_interface REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(hpp-fcl REQUIRED)
 find_package(coal QUIET)
-find_package(tinyxml2 REQUIRED)
+find_package(tinyxml2_vendor REQUIRED)
+find_package(TinyXML2 REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem log_setup log)
 
@@ -27,7 +28,7 @@ set(SELF_COLLISION_EXPORT_DEPS
   ocs2_pinocchio_interface
   pinocchio
   hpp-fcl
-  tinyxml2
+  tinyxml2_vendor
   Eigen3
   Boost
 )
@@ -55,7 +56,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     pinocchio::pinocchio
     ${SELF_COLLISION_FCL_LINK_TARGETS}
-    tinyxml2::tinyxml2
+    ${TinyXML2_LIBRARIES}
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -64,6 +65,7 @@ target_include_directories(${PROJECT_NAME}
     ${EIGEN3_INCLUDE_DIRS}
     ${pinocchio_INCLUDE_DIRS}
     ${hpp-fcl_INCLUDE_DIRS}
+    ${TinyXML2_INCLUDE_DIRS}
 )
 ament_target_dependencies(${PROJECT_NAME}
   PUBLIC
@@ -96,6 +98,7 @@ ament_export_include_directories(
   include
   ${pinocchio_INCLUDE_DIRS}
   ${hpp-fcl_INCLUDE_DIRS}
+  ${TinyXML2_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
